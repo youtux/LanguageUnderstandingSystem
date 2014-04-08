@@ -1,0 +1,7 @@
+<eps> 0
+from 1
+boston 2
+san-diego 3
+denver 4
+to 5
+atlanta 6

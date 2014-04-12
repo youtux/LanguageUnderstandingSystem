@@ -1,0 +1,6 @@
+S 1 FROM_LOC TO_LOC | 1 FROM_LOC | 1 TO_LOC
+FROM_LOC 1 FROM_SEP fromloc.city_name
+FROM_LOC 5 FROM_SEP <unk>
+TO_LOC 1 to toloc.city_name
+TO_LOC 5 to <unk>
+FROM_SEP 0 from | 0 leaving

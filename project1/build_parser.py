@@ -6,7 +6,10 @@ import os.path as path
 from OrderedSet import OrderedSet
 
 PATHS = {
+    'base': 'assets/base.txt',  # Base symbols
+    'basic_words': 'dictionaries/basic_words.txt',
     'symbols': 'build/symbols.lex',
+    'slu': 'automatons/slu.txt',
     'concepts': 'dictionaries/concepts.txt'
 }
 
@@ -17,20 +20,27 @@ except OSError:
 
 
 def init_symbols():
-    r = OrderedSet(['<eps>'])
-    if not path.exists(PATHS['symbols']):
-        return r
+    r = OrderedSet()
+    if path.exists(PATHS['symbols']):
+        read = PATHS['symbols']
+    else:
+        read = PATHS['base']
 
-    with open(PATHS['symbols'], 'r') as f:
+    with open(read, 'r') as f:
         for line in f:
             r.add(line.split()[0])
     return r
 
 
-def fetch_symbols(filepath):
+def fetch_symbols(filepath, grammar=False):
     with open(filepath, 'r') as f:
-        for word in f.read().split():
-            symbols.add(word)
+        for line in f:
+            words = line.split()
+            if grammar:
+                symbols.add(words[0])
+            else:
+                for word in words:
+                    symbols.add(word)
     flush_symbols()
 
 
@@ -69,26 +79,21 @@ def compile_fsm(sourcepath, destpath):
 
 
 def compose_fsm(inputs, output):
-    tmppath = {
-        'read': 'build/tmp/p1.fsm',
-        'write': 'build/tmp/p2.fsm'
-    }
+    with open(output, 'w') as out:
+        subprocess.check_call(["fsmcompose"] + inputs, stdout=out)
 
-    input1 = inputs.pop(0)
-    while len(inputs) != 0:
-        input2 = inputs.pop(0)
 
-        with open(tmppath['write'], 'w') as tmpwrite:
-            subprocess.check_call(["fsmcompose", input1, input2], stdout=tmpwrite)
-
-        os.rename(tmppath['write'], tmppath['read'])
-
-        input1 = tmppath['read']
-    os.rename(tmppath['read'], output)
+def rmepsilon_fsm(fsm):
+    tmppath='build/tmp/p1.fsm'
+    with open(tmppath, 'w') as tmpwrite:
+        subprocess.check_call(["fsmrmepsilon", fsm], stdout=tmpwrite)
+    os.rename(tmppath, fsm)
 
 
 symbols = init_symbols()
+fetch_symbols(PATHS['basic_words'])
 fetch_symbols(PATHS['concepts'])
+fetch_symbols(PATHS['slu'], grammar=True)
 
 dictionaries = {
     'city_name': 'dictionaries/city_name.txt',
@@ -98,8 +103,17 @@ dictionaries = {
 words2concepts(dictionaries, 'build/w2c.txt')
 
 compile_fsm('build/w2c.txt', 'build/w2c.fst')
-#compile_fsm('automatons/c2sc.txt', 'build/c2sc.fst')
+compile_fsm('automatons/c2sc.txt', 'build/c2sc.fst')
+
+
+subprocess.check_call(["grmread", "-i", PATHS['symbols'], '-c', '-w', PATHS['slu'], '-F', 'build/slu.fst'])
+subprocess.check_call(['grmcfcompile', '-i', PATHS['symbols'], '-s', 'S', '-O', '2', 'build/slu.fst', '-F', 'build/slu.fsa'])
+
+
+compose_fsm(['build/w2c.fst', 'build/c2sc.fst'], 'build/w2sc.fst')
+compose_fsm(['build/w2c.fst', 'build/c2sc.fst', 'build/slu.fsa'], 'build/tagger.fst')
 
 # TEST!
-compose_fsm(['simple/0001.fsm', 'build/w2c.fst'], 'build/test0001.fsm')
+#compose_fsm(['simple/0001.fsm', 'build/w2sc.fst'], 'build/0001sc.fsm')
+#rmepsilon_fsm('build/test0001.fsm')
 # Stage 1: w2c_1

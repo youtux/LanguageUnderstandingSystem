@@ -1,8 +1,0 @@
-0 0 city_name fromloc.city_name
-0 0 city_name toloc.city_name
-0 0 city_name stoploc.city_name
-0 0 from from
-0 0 leaving leaving
-0 0 to to
-0 0 <unk> <unk>
-0

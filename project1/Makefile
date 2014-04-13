@@ -2,7 +2,7 @@ BUILD_DIR = build/
 SYMBOLS_PATH = build/symbols.lex
 
 SIMPLE = simple/simple.train
-ATIS = atis/atis.hlti.train
+ATIS = atis/atis.hlti.100.train
 
 
 .PHONY: default simple clean parser

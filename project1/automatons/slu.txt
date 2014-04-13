@@ -1,6 +1,13 @@
-S 1 FROM_LOC TO_LOC | 1 FROM_LOC | 1 TO_LOC
-FROM_LOC 1 FROM_SEP fromloc.city_name
-FROM_LOC 5 FROM_SEP <unk>
-TO_LOC 1 to toloc.city_name
-TO_LOC 5 to <unk>
-FROM_SEP 0 from | 0 leaving
+S 0 FLIGHT_FRAME | 5 <unk> S
+FLIGHT_FRAME 0 <eps>
+FLIGHT_FRAME 1 FROM_LOC FLIGHT_FRAME | 1 STOP_LOC TO_LOC FLIGHT_FRAME | 1 TO_LOC FLIGHT_FRAME | 1 FLIGHT_STOP FLIGHT_FRAME | 10 <unk> FLIGHT_FRAME
+FROM_LOC 10 <eps>
+FROM_LOC 1 FROM_SEP fromloc.city_name 
+TO_LOC 10 <eps>
+TO_LOC 1 TO_SEP toloc.city_name 
+STOP_LOC 10 <eps>
+STOP_LOC 1 STOP_SEP stoploc.city_name 
+FROM_SEP 0 from | 0 leaving | 30 <unk>
+TO_SEP 0 to | 30 <unk>
+STOP_SEP 0 to | 30 <unk>
+FLIGHT_STOP 1 flight_stop

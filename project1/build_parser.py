@@ -2,6 +2,8 @@
 import argparse
 import subprocess
 import os
+import sys
+import shutil
 import os.path as path
 from OrderedSet import OrderedSet
 
@@ -32,6 +34,35 @@ def init_symbols():
     return r
 
 
+"""
+concepts = {
+    'city_name': {
+        'fromloc.city_name',
+        'toloc.city_name',
+        'stoploc.city_name'
+    },
+    'flight_number': {'flight_number'},
+    ...
+}
+"""
+def init_concepts():
+    c = dict()
+    with open(PATHS['concepts'], 'r') as f:
+        for line in f:
+            line = line.rstrip()
+            split = line.split('.')
+
+            weak_concept = split[-1]
+            value = c.get(weak_concept, set())
+
+            c[weak_concept] = value | {line}
+            #print "line={line}, c[{weak_concept}]={value}".format(line=line, weak_concept=weak_concept, value=c[weak_concept])
+    for k in c:
+        if len(c[k]) > 1 and k in c[k]:
+            c[k].remove(k)
+    return c
+
+
 def fetch_symbols(filepath, grammar=False):
     with open(filepath, 'r') as f:
         for line in f:
@@ -56,7 +87,7 @@ def words2concepts(dictionaries, w2c_path):
     seen = set()
     output = open(w2c_path, 'w')
 
-    for dictionary_name, dictionary_path in dictionaries.items():
+    for concept_name, dictionary_path in dictionaries.items():
         with open(dictionary_path, 'r') as dictionary:
             for line in dictionary:
                 l = line.rstrip()
@@ -64,9 +95,18 @@ def words2concepts(dictionaries, w2c_path):
                 symbols.add(l)
                 seen.add(l)
 
-                output.write("0\t0\t{input}\t{output}\n".format(input=l, output=dictionary_name))
+                for spec_concept in concepts[concept_name]:
+                    seen.add(spec_concept)
+                    output.write("0\t0\t{input}\t{output}\n".format(input=l, output=spec_concept))
+                
+                output.write("0\t0\t{input}\t<unk>\t{w}\n".format(input=l, w=50))
+
     for l in symbols - seen:
         output.write("0\t0\t{input}\t{input}\n".format(input=l))
+
+    for c in concepts.values():
+        for sc in c:
+            output.write("0\t0\t<unk>\t{output}\t{w}\n".format(output=sc, w=10))
 
     output.write("0\n")
     output.close()
@@ -89,31 +129,54 @@ def rmepsilon_fsm(fsm):
         subprocess.check_call(["fsmrmepsilon", fsm], stdout=tmpwrite)
     os.rename(tmppath, fsm)
 
+def minimize_fsm(fsm):
+    tmppath='build/tmp/p1.fsm'
+    with open(tmppath, 'w') as tmpwrite:
+        subprocess.check_call(["fsmminimize", fsm], stdout=tmpwrite)
+    os.rename(tmppath, fsm)
+
 
 symbols = init_symbols()
+concepts = init_concepts()
+
 fetch_symbols(PATHS['basic_words'])
 fetch_symbols(PATHS['concepts'])
 fetch_symbols(PATHS['slu'], grammar=True)
 
+
+
+subprocess.check_call(["grmread", "-i", PATHS['symbols'], '-c', '-w', PATHS['slu'], '-F', 'build/slu.fst'])
+
+subprocess.check_call(["grmcfapproximate", '-i', PATHS['symbols'], '-s', 'S', '-o', 'build/tmp/symbols.lex', 'build/slu.fst', '-F', 'build/tmp/slu.txt'])
+
+os.rename('build/tmp/slu.txt', 'build/slu.txt')
+os.rename('build/tmp/symbols.lex', PATHS['symbols'])
+# shutil.copy2(PATHS['slu'], 'build/slu.txt')
+symbols = init_symbols()
+
+subprocess.check_call(["grmread", "-i", PATHS['symbols'], '-c', '-w', 'build/slu.txt', '-F', 'build/slu.fst'])
+
+subprocess.check_call(['grmcfcompile', '-i', PATHS['symbols'], '-s', 'S', '-O', '2', 'build/slu.fst', '-F', 'build/slu.fsa'])
+
+
+#rmepsilon_fsm('build/slu.fsa')
+
 dictionaries = {
     'city_name': 'dictionaries/city_name.txt',
-    'airport_name': 'dictionaries/airport_name.txt'
+    'airport_name': 'dictionaries/airport_name.txt',
+    'flight_stop': 'dictionaries/flight_stop.txt'
 }
 
 words2concepts(dictionaries, 'build/w2c.txt')
 
 compile_fsm('build/w2c.txt', 'build/w2c.fst')
-compile_fsm('automatons/c2sc.txt', 'build/c2sc.fst')
+rmepsilon_fsm('build/w2c.fst')
+# compile_fsm('automatons/c2sc.txt', 'build/c2sc.fst')
 
 
-subprocess.check_call(["grmread", "-i", PATHS['symbols'], '-c', '-w', PATHS['slu'], '-F', 'build/slu.fst'])
-subprocess.check_call(['grmcfcompile', '-i', PATHS['symbols'], '-s', 'S', '-O', '2', 'build/slu.fst', '-F', 'build/slu.fsa'])
-
-
-compose_fsm(['build/w2c.fst', 'build/c2sc.fst'], 'build/w2sc.fst')
-compose_fsm(['build/w2c.fst', 'build/c2sc.fst', 'build/slu.fsa'], 'build/tagger.fst')
+compose_fsm(['build/w2c.fst', 'build/slu.fsa'], 'build/tagger.fst')
 
 # TEST!
-#compose_fsm(['simple/0001.fsm', 'build/w2sc.fst'], 'build/0001sc.fsm')
+#compose_fsm(['simple/0001.fsm', 'build/w2c.fst'], 'build/0001c.fsm')
 #rmepsilon_fsm('build/test0001.fsm')
 # Stage 1: w2c_1

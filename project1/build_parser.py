@@ -86,6 +86,11 @@ def flush_symbols():
 
 
 def words2concepts(conceptsdir_path, w2c_path):
+    w= {
+        'unk2concepts': 50,
+        'concepts2null': 30,
+        'known2null': 10
+    }
     seen = set()
     output = open(w2c_path, 'w')
 
@@ -108,14 +113,15 @@ def words2concepts(conceptsdir_path, w2c_path):
                     seen.add(spec_concept)
                     output.write("0\t0\t{input}\t{output}\n".format(input=l, output=spec_concept))
                 
-                output.write("0\t0\t{input}\t<unk>\t{w}\n".format(input=l, w=50))
+                output.write("0\t0\t{input}\tnull\t{w}\n".format(input=l, w=w['concepts2null']))
 
     for l in symbols - seen:
         output.write("0\t0\t{input}\t{input}\n".format(input=l))
+        output.write("0\t0\t{input}\tnull\t{w}\n".format(input=l,w=w['known2null']))
 
     for c in concepts.values():
         for sc in c:
-            output.write("0\t0\t<unk>\t{output}\t{w}\n".format(output=sc, w=10))
+            output.write("0\t0\t<unk>\t{output}\t{w}\n".format(output=sc, w=w['unk2concepts']))
 
     output.write("0\n")
     output.close()

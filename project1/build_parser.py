@@ -4,6 +4,7 @@ import subprocess
 import os
 import sys
 import shutil
+import pdb
 import os.path as path
 from OrderedSet import OrderedSet
 
@@ -97,6 +98,9 @@ def words2concepts(conceptsdir_path, w2c_path):
             for line in dictionary:
                 l = line.rstrip()
 
+                if len(l) == 0:
+                    continue
+
                 symbols.add(l)
                 seen.add(l)
 
@@ -165,12 +169,6 @@ subprocess.check_call(['grmcfcompile', '-i', PATHS['symbols'], '-s', 'S', '-O', 
 
 
 #rmepsilon_fsm('build/slu.fsa')
-
-dictionaries = {
-    'city_name': 'dictionaries/city_name.txt',
-    'airport_name': 'dictionaries/airport_name.txt',
-    'flight_stop': 'dictionaries/flight_stop.txt'
-}
 
 words2concepts(PATHS['concepts_dir'], 'build/w2c.txt')
 

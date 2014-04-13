@@ -12,7 +12,8 @@ PATHS = {
     'basic_words': 'dictionaries/basic_words.txt',
     'symbols': 'build/symbols.lex',
     'slu': 'automatons/slu.txt',
-    'concepts': 'dictionaries/concepts.txt'
+    'concepts': 'dictionaries/concepts.txt',
+    'concepts_dir': 'dictionaries/concepts/'
 }
 
 try:
@@ -83,11 +84,15 @@ def flush_symbols():
             c += 1
 
 
-def words2concepts(dictionaries, w2c_path):
+def words2concepts(conceptsdir_path, w2c_path):
     seen = set()
     output = open(w2c_path, 'w')
 
-    for concept_name, dictionary_path in dictionaries.items():
+    files = os.listdir(conceptsdir_path)
+    for f in files:
+        concept_name = path.splitext(path.basename(f))[0]
+        dictionary_path = path.join(conceptsdir_path, f)
+        
         with open(dictionary_path, 'r') as dictionary:
             for line in dictionary:
                 l = line.rstrip()
@@ -167,7 +172,7 @@ dictionaries = {
     'flight_stop': 'dictionaries/flight_stop.txt'
 }
 
-words2concepts(dictionaries, 'build/w2c.txt')
+words2concepts(PATHS['concepts_dir'], 'build/w2c.txt')
 
 compile_fsm('build/w2c.txt', 'build/w2c.fst')
 rmepsilon_fsm('build/w2c.fst')

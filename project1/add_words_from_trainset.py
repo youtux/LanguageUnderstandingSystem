@@ -18,10 +18,10 @@ with open(args.input_file, 'r') as f:
             word = split[0]
             concept = split[1].split('.')[-1]
 
-            print split[0] + "=>" + str(concept)
+            #print split[0] + "=>" + str(concept)
 
             c[concept] = c.get(concept, set()) | {word}
-print c
+#print c
 for concept in c:
     out_path = path.join(args.output_directory, concept + '.txt')
 

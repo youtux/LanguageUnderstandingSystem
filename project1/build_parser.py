@@ -87,8 +87,8 @@ def flush_symbols():
 
 def words2concepts(conceptsdir_path, w2c_path):
     w= {
-        'unk2concepts': 50,
-        'concepts2null': 30,
+        'unk2concepts': 100,
+        'concepts2null': 70,
         'known2null': 10
     }
     seen = set()

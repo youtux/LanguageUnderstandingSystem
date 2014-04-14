@@ -4,4 +4,4 @@ friday
 saturday
 thursday
 wednesday
-
+tuesday

@@ -1,4 +1,9 @@
 nonstop
 no-stops
 nonstops
-
+no-stop
+stops
+one-stop
+two-stop
+stop
+maximum-number-of-stops

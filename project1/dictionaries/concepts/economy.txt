@@ -1,2 +1,2 @@
 economy
-
+economy-class

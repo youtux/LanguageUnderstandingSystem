@@ -1,4 +1,11 @@
 earliest
 latest
 first
-
+last
+cheap
+cheapest
+expensive
+most-expensive
+overnight
+weekday
+shortest

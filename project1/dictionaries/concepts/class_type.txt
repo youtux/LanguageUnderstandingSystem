@@ -1,3 +1,6 @@
 first-class
 coach
-
+business-class
+thrift
+second-class
+third-class

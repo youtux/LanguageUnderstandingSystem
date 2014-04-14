@@ -1,3 +1,8 @@
 least-expensive
 cheapest
-
+lowest
+lowest-price
+less
+most-expensive
+under
+highest

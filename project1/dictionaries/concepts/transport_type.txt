@@ -1,2 +1,8 @@
 rental-car
 
+taxi
+car-rentals
+limousines
+car-rental
+car
+limousine

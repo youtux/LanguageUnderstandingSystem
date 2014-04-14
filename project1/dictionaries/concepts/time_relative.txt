@@ -1,4 +1,10 @@
 after
 around
 before
-
+about
+afterwards
+no-earlier-than
+no-later-than
+approximately
+close
+by

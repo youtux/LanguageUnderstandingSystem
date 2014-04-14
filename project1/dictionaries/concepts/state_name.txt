@@ -1,2 +1,11 @@
 georgia
-
+colorado
+pennsylvania
+florida
+washington
+minnesota
+new-jersey
+north-carolina
+california
+quebec
+ohio

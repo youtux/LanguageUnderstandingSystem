@@ -1538,3 +1538,14 @@
 2359
 noon
 midnight
+one
+720am
+755am
+time
+615pm
+838am
+530pm
+230pm
+eight
+12-noon
+mealtime

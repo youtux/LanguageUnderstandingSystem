@@ -1538,3 +1538,6 @@
 2359
 noon
 midnight
+1245pm
+530pm
+1130am

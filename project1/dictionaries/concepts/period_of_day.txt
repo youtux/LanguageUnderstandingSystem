@@ -2,4 +2,7 @@ evening
 afternoon
 early-morning
 morning
-
+lunch-time
+midnight
+nights
+night

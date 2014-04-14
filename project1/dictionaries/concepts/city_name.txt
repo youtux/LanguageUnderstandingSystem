@@ -422,3 +422,4 @@ yellowknife
 yonkers
 york
 youngstown
+salt-lake

@@ -1,2 +1,7 @@
 departure-times
-
+flight-times
+time
+times
+arrival-time
+schedule
+flight-schedule

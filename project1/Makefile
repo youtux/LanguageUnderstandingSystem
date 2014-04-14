@@ -15,7 +15,7 @@ atis: clean parser
 simple: clean parser
 	farcompilestrings -u "<unk>" -i $(SYMBOLS_PATH) $(SIMPLE) > $(BUILD_DIR)/input.far
 test:
-	cd build; \
+	cd $(BUILD_DIR); \
 	farfilter "fsmcompose - tagger.fst | fsmbestpath | fsmrmepsilon" < input.far > output.far; \
 	farfilter "fsmprint -i symbols.lex -o symbols.lex - | cut -f 3,4" <output.far > tagged.txt
 
@@ -24,4 +24,4 @@ parser: clean
 	./build_parser.py
 
 clean:
-	rm -rf build/*
+	rm -rf $(BUILD_DIR)/*

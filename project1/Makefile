@@ -12,6 +12,10 @@ atis: clean parser
 	farcompilestrings -u "<unk>" -i $(SYMBOLS_PATH) $(ATIS) > $(BUILD_DIR)/input.far
 	cp atis/atis.hlti.100.dev $(BUILD_DIR)/golden.txt
 
+atis1k: clean parser
+	farcompilestrings -u "<unk>" -i $(SYMBOLS_PATH) atis/atis.1k.train > $(BUILD_DIR)/input.far
+	cp atis/atis.1k.train.tagged $(BUILD_DIR)/golden.txt
+
 test:
 	cd $(BUILD_DIR); \
 	farfilter "fsmcompose - tagger.fst | fsmbestpath | fsmrmepsilon" < input.far > output.far; \

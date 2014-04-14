@@ -33,6 +33,11 @@ def levenshtein(s1, s2):
 golden_f = open(args.golden_tagged, 'r')
 input_f = open(args.input_tagged, 'r')
 
+stats = {
+    'sum_edit_d': 0,
+    'sum_n_concepts': 0
+}
+
 c = 0
 new_sentence = True
 buf1 = []
@@ -58,6 +63,7 @@ while not end:
         #print "end of sentence.\nbuf1={}\nbuf2={}\nbuf3={}".format(buf1, buf2, buf3)
 
         phrase_len = len(buf1)
+        stats['sum_n_concepts'] += phrase_len
         
         # temporarly remove nulls from buffers, until we'll have a nullifier
         i = 0
@@ -67,7 +73,9 @@ while not end:
                 del buf3[i]
             else:
                 i += 1
-        print "---{edit_d}---{CER}---\n".format(edit_d=levenshtein(buf2, buf3), CER=levenshtein(buf2, buf3)/float(phrase_len))
+        edit_d = levenshtein(buf2, buf3)
+        stats['sum_edit_d'] += edit_d
+        print "---{edit_d}---{CER}---\n".format(edit_d=edit_d, CER=edit_d/float(phrase_len))
 
         buf1 = []
         buf2 = []
@@ -82,5 +90,8 @@ while not end:
     buf3.append(in2.split()[1])
 
     #print buf1[-1] + "\t" + buf2[-1]
+
+print stats
+print "CER_total={}\n".format(stats['sum_edit_d']/float(stats['sum_n_concepts']))
 
 sys.exit(c)

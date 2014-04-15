@@ -10,6 +10,7 @@ parser.add_argument("input_tagged", help="Input generated from tagger")
 parser.add_argument("golden_tagged", help="Input gold")
 args = parser.parse_args()
 
+
 def levenshtein(s1, s2):
     #print "LEVENSHTEIN!\ns1={}\ns2={}".format(s1, s2)
     if len(s1) < len(s2):
@@ -40,6 +41,8 @@ stats = {
 }
 
 c = 0
+
+phrase_counter = 0
 new_sentence = True
 buf1 = []
 buf2 = []
@@ -61,6 +64,8 @@ while not end:
     if in1 == in2 == "\n":
         #print "end of sentence.\nbuf1={}\nbuf2={}\nbuf3={}".format(buf1, buf2, buf3)
 
+        phrase_counter += 1
+
         phrase_len = len(buf1)
         stats['sum_n_concepts'] += phrase_len
         
@@ -75,7 +80,8 @@ while not end:
         stats['sum_edit_d'] += edit_d
 
         if edit_d == 0:
-            print "---{edit_d}---{CER}---{phrase}".format(
+            print "{c}: ---{edit_d}---{CER}---{phrase}".format(
+                c=phrase_counter,
                 edit_d=edit_d,
                 CER=edit_d/float(phrase_len),
                 phrase=" ".join(buf1)
@@ -83,7 +89,8 @@ while not end:
         else:
             for i, word in enumerate(buf1):
                 print "{}\t{}\t{}".format(buf1[i], buf2[i], buf3[i])
-            print "---{edit_d}---{CER}---\n".format(
+            print "{c}: ---{edit_d}---{CER}---\n".format(
+                c=phrase_counter,
                 edit_d=edit_d,
                 CER=edit_d/float(phrase_len)
             )

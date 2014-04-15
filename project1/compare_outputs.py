@@ -3,6 +3,7 @@ from os import path
 import sys
 import argparse
 import pdb
+import itertools
 
 parser = argparse.ArgumentParser()
 parser.add_argument("input_tagged", help="Input generated from tagger")
@@ -58,24 +59,34 @@ while not end:
         sys.exit(2) # wrong tagged.txt
 
     if in1 == in2 == "\n":
-        for i, word in enumerate(buf1):
-            print "{}\t{}\t{}".format(buf1[i], buf2[i], buf3[i])
         #print "end of sentence.\nbuf1={}\nbuf2={}\nbuf3={}".format(buf1, buf2, buf3)
 
         phrase_len = len(buf1)
         stats['sum_n_concepts'] += phrase_len
         
         # temporarly remove nulls from buffers, until we'll have a nullifier
-        i = 0
-        while i < len(buf2):
-            if buf2[i] == 'null':
-                del buf2[i]
-                del buf3[i]
-            else:
-                i += 1
-        edit_d = levenshtein(buf2, buf3)
+        mask = []
+        for i, word in enumerate(buf2):
+            mask.append(1 if word != 'null' else 0)
+        edit_d = levenshtein(
+            list(itertools.compress(buf2, mask)),
+            list(itertools.compress(buf3, mask))
+        )
         stats['sum_edit_d'] += edit_d
-        print "---{edit_d}---{CER}---\n".format(edit_d=edit_d, CER=edit_d/float(phrase_len))
+
+        if edit_d == 0:
+            print "---{edit_d}---{CER}---{phrase}".format(
+                edit_d=edit_d,
+                CER=edit_d/float(phrase_len),
+                phrase=" ".join(buf1)
+            )
+        else:
+            for i, word in enumerate(buf1):
+                print "{}\t{}\t{}".format(buf1[i], buf2[i], buf3[i])
+            print "---{edit_d}---{CER}---\n".format(
+                edit_d=edit_d,
+                CER=edit_d/float(phrase_len)
+            )
 
         buf1 = []
         buf2 = []

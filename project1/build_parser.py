@@ -66,15 +66,19 @@ def init_concepts():
 
 
 def fetch_symbols(filepath, grammar=False):
+    ret = set()
     with open(filepath, 'r') as f:
         for line in f:
             words = line.split()
             if grammar:
                 symbols.add(words[0])
+                ret.add(words[0])
             else:
                 for word in words:
                     symbols.add(word)
+                    ret.add(word)
     flush_symbols()
+    return ret
 
 
 def flush_symbols():
@@ -85,7 +89,7 @@ def flush_symbols():
             c += 1
 
 
-def words2concepts(conceptsdir_path, w2c_path):
+def words2concepts(conceptsdir_path, map_to_self_words, w2c_path):
     w= {
         'unk2concepts': 100,
         'concepts2null': 70,
@@ -115,7 +119,7 @@ def words2concepts(conceptsdir_path, w2c_path):
                 
                 output.write("0\t0\t{input}\tnull\t{w}\n".format(input=l, w=w['concepts2null']))
 
-    for l in symbols - seen:
+    for l in (symbols - seen) | map_to_self_words:
         output.write("0\t0\t{input}\t{input}\n".format(input=l))
         output.write("0\t0\t{input}\tnull\t{w}\n".format(input=l,w=w['known2null']))
 
@@ -160,7 +164,7 @@ def determinize_fsm(fsm):
 symbols = init_symbols()
 concepts = init_concepts()
 
-fetch_symbols(PATHS['basic_words'])
+basic_words = fetch_symbols(PATHS['basic_words'])
 fetch_symbols(PATHS['concepts'])
 fetch_symbols(PATHS['slu'], grammar=True)
 
@@ -182,7 +186,7 @@ subprocess.check_call(['grmcfcompile', '-i', PATHS['symbols'], '-s', 'S', '-O', 
 
 #rmepsilon_fsm('build/slu.fsa')
 
-words2concepts(PATHS['concepts_dir'], 'build/w2c.txt')
+words2concepts(PATHS['concepts_dir'], basic_words, 'build/w2c.txt')
 
 compile_fsm('build/w2c.txt', 'build/w2c.fst')
 rmepsilon_fsm('build/w2c.fst')

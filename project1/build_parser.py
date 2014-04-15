@@ -150,6 +150,12 @@ def minimize_fsm(fsm):
         subprocess.check_call(["fsmminimize", fsm], stdout=tmpwrite)
     os.rename(tmppath, fsm)
 
+def determinize_fsm(fsm):
+    tmppath='build/tmp/p1.fsm'
+    with open(tmppath, 'w') as tmpwrite:
+        subprocess.check_call(["fsmdeterminize", fsm], stdout=tmpwrite)
+    os.rename(tmppath, fsm)
+
 
 symbols = init_symbols()
 concepts = init_concepts()
@@ -184,8 +190,4 @@ rmepsilon_fsm('build/w2c.fst')
 
 
 compose_fsm(['build/w2c.fst', 'build/slu.fsa'], 'build/tagger.fst')
-
-# TEST!
-#compose_fsm(['simple/0001.fsm', 'build/w2c.fst'], 'build/0001c.fsm')
-#rmepsilon_fsm('build/test0001.fsm')
-# Stage 1: w2c_1
+rmepsilon_fsm('build/tagger.fst')

@@ -1,29 +1,29 @@
-S 0 FLIGHT_FRAME
-FLIGHT_FRAME 0 <eps>
-FLIGHT_FRAME 1 FLIGHT_FRAME_LEAVING FLIGHT_FRAME | 1 STOP_LOC TO_LOC FLIGHT_FRAME | 1 TO_LOC FLIGHT_FRAME
-FLIGHT_FRAME 1 flight_stop FLIGHT_FRAME
-FLIGHT_FRAME 1 round_trip FLIGHT_FRAME
-FLIGHT_FRAME 1 flight_mod FLIGHT_FRAME
-FLIGHT_FRAME 1 class_type FLIGHT_FRAME
-FLIGHT_FRAME 1 cost_relative FLIGHT_FRAME
-FLIGHT_FRAME 1 airline_name FLIGHT_FRAME
-FLIGHT_FRAME 1 leaving FLIGHT_FRAME_LEAVING | 5 FLIGHT_FRAME_LEAVING
-FLIGHT_FRAME 10 null FLIGHT_FRAME
-FLIGHT_FRAME_LEAVING 0 <eps>
-FLIGHT_FRAME_LEAVING 1 FROM_SEP fromloc.city_name FLIGHT_FRAME_LEAVING | 1 between fromloc.city_name and toloc.city_name FLIGHT_FRAME_LEAVING
-FLIGHT_FRAME_LEAVING 1 depart_time.time FLIGHT_FRAME_LEAVING
-FLIGHT_FRAME_LEAVING 1 between depart_time.start_time and depart_time.end_time FLIGHT_FRAME_LEAVING
-FLIGHT_FRAME_LEAVING 1 on FLIGHT_FRAME_LEAVING
-FLIGHT_FRAME_LEAVING 1 LEAVING_DATE FLIGHT_FRAME_LEAVING
-LEAVING_DATE 1 depart_date.date_relative LEAVING_DATE
-LEAVING_DATE 1 depart_date.month_name LEAVING_DATE
-LEAVING_DATE 1 depart_date.day_number LEAVING_DATE
-LEAVING_DATE 1 depart_date.day_name LEAVING_DATE
-LEAVING_DATE 0 <eps>
-FLIGHT_FRAME_LEAVING 10 null FLIGHT_FRAME_LEAVING
-FROM_LOC 1 FROM_SEP fromloc.city_name
-TO_LOC 1 TO_SEP toloc.city_name
-STOP_LOC 1 STOP_SEP stoploc.city_name
-FROM_SEP 0 from | 5 <eps> | 30 <unk>
-TO_SEP 0 to | 30 <unk>
-STOP_SEP 0 to | 30 <unk>
+S					0 <eps>
+S					1 LEAVING_STMT LEAVING S | 1 STOP_LOC TO_LOC S | 1 TO_LOC S
+S					1 flight_stop S
+S					1 round_trip S
+S					1 flight_mod S
+S					1 class_type S
+S					1 cost_relative S
+S					1 airline_name S
+S					1 leaving LEAVING | 5 LEAVING
+S					10 null S
+LEAVING				0 <eps>
+LEAVING				1 FROM_SEP fromloc.city_name LEAVING | 1 between fromloc.city_name and toloc.city_name LEAVING
+LEAVING				0 LEAVING_TIME LEAVING
+LEAVING				0 LEAVING_DATE LEAVING
+LEAVING				1 on LEAVING | 10 null LEAVING
+LEAVING_STMT		1 leaving | 5 <eps> | 30 null
+LEAVING_TIME		10 depart_time.time
+LEAVING_TIME		1 between depart_time.start_time and depart_time.end_time
+LEAVING_DATE		1 depart_date.date_relative
+LEAVING_DATE		1 depart_date.month_name
+LEAVING_DATE		1 depart_date.day_number
+LEAVING_DATE		1 depart_date.day_name
+LEAVING_DATE		0 <eps>
+FROM_LOC			1 FROM_SEP fromloc.city_name
+TO_LOC				1 TO_SEP toloc.city_name
+STOP_LOC			1 STOP_SEP stoploc.city_name
+FROM_SEP			1 from | 5 <eps> | 30 null
+TO_SEP				1 to | 30 null
+STOP_SEP			1 to | 30 null

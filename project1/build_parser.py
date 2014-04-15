@@ -166,32 +166,32 @@ concepts = init_concepts()
 
 basic_words = fetch_symbols(PATHS['basic_words'])
 fetch_symbols(PATHS['concepts'])
-fetch_symbols(PATHS['slu'], grammar=True)
 
 
 
-subprocess.check_call(["grmread", "-i", PATHS['symbols'], '-c', '-w', PATHS['slu'], '-F', 'build/slu.fst'])
+# subprocess.check_call(["grmread", "-i", PATHS['symbols'], '-c', '-w', PATHS['slu'], '-F', 'build/slu.fst'])
 
-subprocess.check_call(["grmcfapproximate", '-i', PATHS['symbols'], '-s', 'S', '-o', 'build/tmp/symbols.lex', 'build/slu.fst', '-F', 'build/tmp/slu.txt'])
+# subprocess.check_call(["grmcfapproximate", '-i', PATHS['symbols'], '-s', 'S', '-o', 'build/tmp/symbols.lex', 'build/slu.fst', '-F', 'build/tmp/slu.txt'])
 
-os.rename('build/tmp/slu.txt', 'build/slu.txt')
-os.rename('build/tmp/symbols.lex', PATHS['symbols'])
-# shutil.copy2(PATHS['slu'], 'build/slu.txt')
-symbols = init_symbols()
+# os.rename('build/tmp/slu.txt', 'build/slu.txt')
+# os.rename('build/tmp/symbols.lex', PATHS['symbols'])
+# # shutil.copy2(PATHS['slu'], 'build/slu.txt')
+# symbols = init_symbols()
 
-subprocess.check_call(["grmread", "-i", PATHS['symbols'], '-c', '-w', 'build/slu.txt', '-F', 'build/slu.fst'])
+# subprocess.check_call(["grmread", "-i", PATHS['symbols'], '-c', '-w', 'build/slu.txt', '-F', 'build/slu.fst'])
 
-subprocess.check_call(['grmcfcompile', '-i', PATHS['symbols'], '-s', 'S', '-O', '2', 'build/slu.fst', '-F', 'build/slu.fsa'])
+# subprocess.check_call(['grmcfcompile', '-i', PATHS['symbols'], '-s', 'S', '-O', '2', 'build/slu.fst', '-F', 'build/slu.fsa'])
 
 
 #rmepsilon_fsm('build/slu.fsa')
 
 words2concepts(PATHS['concepts_dir'], basic_words, 'build/w2c.txt')
+fetch_symbols(PATHS['slu'], grammar=True)
 
-compile_fsm('build/w2c.txt', 'build/w2c.fst')
-rmepsilon_fsm('build/w2c.fst')
-# compile_fsm('automatons/c2sc.txt', 'build/c2sc.fst')
+# compile_fsm('build/w2c.txt', 'build/w2c.fst')
+# rmepsilon_fsm('build/w2c.fst')
+# # compile_fsm('automatons/c2sc.txt', 'build/c2sc.fst')
 
 
-compose_fsm(['build/w2c.fst', 'build/slu.fsa'], 'build/tagger.fst')
-rmepsilon_fsm('build/tagger.fst')
+# compose_fsm(['build/w2c.fst', 'build/slu.fsa'], 'build/tagger.fst')
+# rmepsilon_fsm('build/tagger.fst')

@@ -1,13 +1,18 @@
 BUILD_DIR = build
+TMP = $(BUILD_DIR)/tmp
+SLU_PATH = automatons/slu.txt
+W2C_PATH = build/w2c.txt
 SYMBOLS_PATH = build/symbols.lex
 
 INPUT_WL = atis/custom
 INPUT_TAGGED = atis/custom.tagged
 
 
-.PHONY: default simple clean parser build_wl build_far
+.PHONY: default all clean parser build_wl build_far test
 
-default: parser
+default: all
+
+all: build_wl build_far parser test
 
 build_wl:
 	./build_wordlist_from_tagged.py $(INPUT_TAGGED) > $(INPUT_WL)
@@ -24,6 +29,25 @@ test:
 
 parser: clean
 	./build_parser.py
+	# First pass compile grammar
+	grmread -i $(SYMBOLS_PATH) -c -w $(SLU_PATH) > $(TMP)/slu.fst
+	grmcfapproximate -i $(SYMBOLS_PATH) -o $(TMP)/symbols.lex -s S $(TMP)/slu.fst > $(BUILD_DIR)/slu.txt
+	mv $(TMP)/symbols.lex $(SYMBOLS_PATH)
+
+	# Convert into a regular grammar
+	grmread -i $(SYMBOLS_PATH) -c -w $(BUILD_DIR)/slu.txt > $(BUILD_DIR)/slu.fst
+	grmcfcompile -i $(SYMBOLS_PATH) -s S -O 2 $(BUILD_DIR)/slu.fst > $(BUILD_DIR)/slu.fsa
+
+	# Compile the w2c
+	fsmcompile -t -i $(SYMBOLS_PATH) -o $(SYMBOLS_PATH) $(BUILD_DIR)/w2c.txt > $(BUILD_DIR)/w2c.fst
+
+	# Compose w2c + slu -> tagger
+	fsmcompose $(BUILD_DIR)/w2c.fst $(BUILD_DIR)/slu.fsa > $(BUILD_DIR)/tagger.fst
+
+	# Just a bit of optimization
+	fsmrmepsilon $(BUILD_DIR)/tagger.fst > $(TMP)/tagger.fst
+	mv $(TMP)/tagger.fst $(BUILD_DIR)/tagger.fst
+
 
 clean:
 	rm -rf $(BUILD_DIR)/*

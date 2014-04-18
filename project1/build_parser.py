@@ -88,12 +88,13 @@ def flush_symbols():
             out.write("{term}\t{index}\n".format(term=v, index=c))
             c += 1
 
-
-def words2concepts(conceptsdir_path, map_to_self_words, w2c_path):
+# we map to null what we think is unuseful
+def words2concepts(conceptsdir_path, basic_words, w2c_path):
     w= {
-        'unk2concepts': 100,
-        'concepts2null': 70,
-        'known2null': 10
+        'unk2concepts': 3,
+        'unk2null': 2,
+        'basic2null': 1,
+        'concepts2null': 3,
     }
     seen = set()
     output = open(w2c_path, 'w')
@@ -116,16 +117,20 @@ def words2concepts(conceptsdir_path, map_to_self_words, w2c_path):
                 for spec_concept in concepts[concept_name]:
                     seen.add(spec_concept)
                     output.write("0\t0\t{input}\t{output}\n".format(input=l, output=spec_concept))
-                
+
                 output.write("0\t0\t{input}\tnull\t{w}\n".format(input=l, w=w['concepts2null']))
 
-    for l in (symbols - seen) | map_to_self_words:
+    for l in basic_words:
         output.write("0\t0\t{input}\t{input}\n".format(input=l))
-        output.write("0\t0\t{input}\tnull\t{w}\n".format(input=l,w=w['known2null']))
+        output.write("0\t0\t{input}\tnull\t{w}\n".format(input=l,w=w['basic2null']))
 
     for c in concepts.values():
         for sc in c:
-            output.write("0\t0\t<unk>\t{output}\t{w}\n".format(output=sc, w=w['unk2concepts']))
+            if sc == 'null':
+                weight = w['unk2null']
+            else:
+                weight = w['unk2concepts']
+            output.write("0\t0\t<unk>\t{output}\t{w}\n".format(output=sc, w=weight))
 
     output.write("0\n")
     output.close()

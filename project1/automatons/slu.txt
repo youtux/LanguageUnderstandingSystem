@@ -1,29 +1,42 @@
 S					0 <eps>
-S					1 LEAVING_STMT LEAVING S | 1 STOP_LOC TO_LOC S | 1 TO_LOC S
+S					0 GARBAGES S
+S					0 leaving FROMLOC for TOLOC S
+S					0 between FROMLOC and TOLOC S | 0 FROM_SEP FROMLOC TO_SEP TOLOC S
+S					0 START_STMT GARBAGES START_FRAME S
+S					0 ARRIVE_STMT GARBAGES ARRIVE_FRAME S
+S					0 STOP_STMT GARBAGES STOP_FRAME S
 S					1 flight_stop S
 S					1 round_trip S
-S					1 flight_mod S
-S					1 class_type S
-S					1 cost_relative S
+S					1 flight_mod flight S | 2 flight_mod S
+S					0 economy fare S | 0 economy fares S | 1 economy S
+S					1 transport_type S
+S					0 class_type fare S | 0 class_type fares S | 1 class_type S
+S					0 cost_relative fare | 0 cost_relative fares | 1 cost_relative S
 S					1 airline_name S
-S					1 leaving LEAVING | 5 LEAVING
-S					10 null S
-LEAVING				0 <eps>
-LEAVING				1 FROM_SEP fromloc.city_name LEAVING | 1 between fromloc.city_name and toloc.city_name LEAVING
-LEAVING				0 LEAVING_TIME LEAVING
-LEAVING				0 LEAVING_DATE LEAVING
-LEAVING				1 on LEAVING | 10 null LEAVING
-LEAVING_STMT		1 leaving | 5 <eps> | 30 null
-LEAVING_TIME		10 depart_time.time
-LEAVING_TIME		1 between depart_time.start_time and depart_time.end_time
-LEAVING_DATE		1 depart_date.date_relative
-LEAVING_DATE		1 depart_date.month_name
-LEAVING_DATE		1 depart_date.day_number
-LEAVING_DATE		1 depart_date.day_name
-LEAVING_DATE		0 <eps>
-FROM_LOC			1 FROM_SEP fromloc.city_name
-TO_LOC				1 TO_SEP toloc.city_name
-STOP_LOC			1 STOP_SEP stoploc.city_name
-FROM_SEP			1 from | 5 <eps> | 30 null
-TO_SEP				1 to | 30 null
-STOP_SEP			1 to | 30 null
+S					1 fare_basis_code S
+S					1 flight flight_number S | 1 flight number flight_number S
+S					1 meal S
+FROMLOC				0 fromloc.city_name | 1 fromloc.city_name fromloc.state_code | 1 fromloc.state_code | 1 fromloc.city_name fromloc.state_name | 1 fromloc.airport_name | 3 fromloc.airport_code
+TOLOC				0 toloc.city_name | 1 toloc.city_name toloc.state_code | 1 fromloc.state_code | 1 toloc.city_name toloc.state_name | 1 toloc.airport_name | 3 toloc.airport_code
+STOPLOC				0 stoploc.city_name | 1 stoploc.city_name stoploc.state_code | 0 stoploc.airport_name
+START_FRAME			0 FROM_SEP FROMLOC START_FRAME_CONT
+START_FRAME			0 LEAVING_TIME START_FRAME_CONT
+START_FRAME			0 LEAVING_DATE START_FRAME_CONT
+START_FRAME_CONT	0 START_FRAME START_FRAME_CONT | 0 <eps>
+ARRIVE_FRAME		0 TO_SEP TOLOC ARRIVE_FRAME_CONT
+ARRIVE_FRAME		0 ARRIVE_TIME ARRIVE_FRAME_CONT
+ARRIVE_FRAME		0 ARRIVE_DATE ARRIVE_FRAME_CONT
+ARRIVE_FRAME_CONT	0 ARRIVE_FRAME ARRIVE_FRAME_CONT | 0 <eps>
+STOP_FRAME			0 STOP_SEP STOPLOC
+LEAVING_TIME		0 depart_time.time_relative | 0 depart_time.time | 0 depart_time.period_of_day | 0 depart_time.period_mod | 0 between depart_time.start_time and depart_time.end_time
+LEAVING_DATE		0 depart_date.date_relative | 0 depart_date.month_name | 0 depart_date.day_number | 0 depart_date.day_name | 0 depart_date.today_relative
+ARRIVE_TIME			0 arrive_time.time_relative | 0 arrive_time.time | 0 arrive_time.period_of_day | 0 arrive_time.period_mod | 0 between arrive_time.start_time and arrive_time.end_time
+ARRIVE_DATE			0 arrive_date.date_relative | 0 arrive_date.month_name | 0 arrive_date.day_number | 0 arrive_date.day_name | 0 arrive_date.today_relative
+FROM_SEP			0 from | 1 from GARBAGE |  1 <eps>
+TO_SEP				0 to | 1 to GARBAGE | 0 for | 1 <eps>
+STOP_SEP			0 GARBAGE
+START_STMT			0 leaving | 0 leaves | 0 leave | 0 departing | 0 departs | 2 <eps>
+STOP_STMT			0 stop in | 0 stopover in | 0 via 
+ARRIVE_STMT			0 arrive | 0 arriving | 0 arrives | 0 go to | 0 goes to
+GARBAGES			0 GARBAGE GARBAGES | 0 <eps>
+GARBAGE				0 null | 0 what | 0 which | 0 like to | 0 want to | 0 wish to | 0 need to | 0 in the | 0 does | 0 on | 0 of | 0 a | 0 the | 0 downtown | 0 i | 0 you | 0 have | 0 with | 0 <eps>

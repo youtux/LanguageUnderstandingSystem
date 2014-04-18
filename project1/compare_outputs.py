@@ -11,6 +11,14 @@ parser.add_argument("golden_tagged", help="Input gold")
 args = parser.parse_args()
 
 
+with open('dictionaries/basic_words.txt') as r:
+    basic_concepts = set([l for l in r.read().split()])
+
+
+def nullify(l):
+    return map(lambda x: 'null' if x in basic_concepts else x, l)
+
+
 def levenshtein(s1, s2):
     #print "LEVENSHTEIN!\ns1={}\ns2={}".format(s1, s2)
     if len(s1) < len(s2):
@@ -59,6 +67,7 @@ while not end:
 
     if (in1 == "\n") != (in2 == "\n"):
         print "Unexpected end of sentence!\n"
+        #pdb.set_trace()
         sys.exit(2) # wrong tagged.txt
 
     if in1 == in2 == "\n":
@@ -70,13 +79,14 @@ while not end:
         stats['sum_n_concepts'] += phrase_len
         
         # temporarly remove nulls from buffers, until we'll have a nullifier
-        mask = []
-        for i, word in enumerate(buf2):
-            mask.append(1 if word != 'null' else 0)
-        edit_d = levenshtein(
-            list(itertools.compress(buf2, mask)),
-            list(itertools.compress(buf3, mask))
-        )
+        # mask = []
+        # for i, word in enumerate(buf2):
+        #     mask.append(1 if word != 'null' else 0)
+        # edit_d = levenshtein(
+        #     list(itertools.compress(buf2, mask)),
+        #     list(itertools.compress(buf3, mask))
+        # )
+        edit_d = levenshtein(buf2, nullify(buf3))
         stats['sum_edit_d'] += edit_d
 
         if edit_d == 0:

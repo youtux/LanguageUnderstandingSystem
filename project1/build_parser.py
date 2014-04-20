@@ -59,9 +59,9 @@ def init_concepts():
 
             c[weak_concept] = value | {line}
             #print "line={line}, c[{weak_concept}]={value}".format(line=line, weak_concept=weak_concept, value=c[weak_concept])
-    for k in c:
-        if len(c[k]) > 1 and k in c[k]:
-            c[k].remove(k)
+    # for k in c:
+    #     if len(c[k]) > 1 and k in c[k]:
+    #         c[k].remove(k)
     return c
 
 
@@ -91,19 +91,23 @@ def flush_symbols():
 # we map to null what we think is unuseful
 def words2concepts(conceptsdir_path, basic_words, w2c_path):
     w= {
-        'unk2concepts': 3,
+        'unk2concepts': 4,
         'unk2null': 2,
-        'basic2null': 1,
-        'concepts2null': 3,
+        'basic2null': 10,
+        'concepts2null': 4,
     }
     seen = set()
     output = open(w2c_path, 'w')
 
+
     files = os.listdir(conceptsdir_path)
     for f in files:
         concept_name = path.splitext(path.basename(f))[0]
+        ext = path.splitext(path.basename(f))[1]
+        if ext == '.ignore':
+            continue
         dictionary_path = path.join(conceptsdir_path, f)
-        
+
         with open(dictionary_path, 'r') as dictionary:
             for line in dictionary:
                 l = line.rstrip()
@@ -115,12 +119,13 @@ def words2concepts(conceptsdir_path, basic_words, w2c_path):
                 seen.add(l)
 
                 for spec_concept in concepts[concept_name]:
-                    seen.add(spec_concept)
+                    symbols.add(spec_concept)
                     output.write("0\t0\t{input}\t{output}\n".format(input=l, output=spec_concept))
-
+                output.write("0\t0\t{input}\t{input}\n".format(input=l))
                 output.write("0\t0\t{input}\tnull\t{w}\n".format(input=l, w=w['concepts2null']))
 
     for l in basic_words:
+        seen.add(l)
         output.write("0\t0\t{input}\t{input}\n".format(input=l))
         output.write("0\t0\t{input}\tnull\t{w}\n".format(input=l,w=w['basic2null']))
 
@@ -130,7 +135,8 @@ def words2concepts(conceptsdir_path, basic_words, w2c_path):
                 weight = w['unk2null']
             else:
                 weight = w['unk2concepts']
-            output.write("0\t0\t<unk>\t{output}\t{w}\n".format(output=sc, w=weight))
+            for unk in symbols - seen - set(['<eps>']):
+                output.write("0\t0\t{input}\t{output}\t{w}\n".format(input=unk, output=sc, w=weight))
 
     output.write("0\n")
     output.close()

@@ -82,7 +82,7 @@ corner-brook
 corona
 corpus-christi
 costa-mesa
-
+dallas
 dallas-fort-worth
 daly-city
 danbury

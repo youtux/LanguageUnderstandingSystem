@@ -1,3 +1,6 @@
+alitalia
+easyjet
+airfrance
 united-airlines
 united
 delta-airline
@@ -7,20 +10,12 @@ american-airlines
 continental
 delta
 midwest
-us-air
 eastern
 united-airline
 lufthansa
 america-west
-trans-world-airline
 eastern-airlines
 continental-airlines
-nationair
-canadian-airlines-international
-american
 american-airline
-northwest
-southwest
 continental-airline
 eastern-airline
-tower-air

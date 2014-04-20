@@ -4,4 +4,5 @@ nonstops
 no-stop
 one-stop
 two-stop
+two-stops
 maximum-number-of-stops

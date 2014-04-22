@@ -6,10 +6,10 @@ import pdb
 import itertools
 
 parser = argparse.ArgumentParser()
+parser.add_argument("--autonullify", help="Auto-nullify non-concept words", action="store_true", default=False)
 parser.add_argument("input_tagged", help="Input generated from tagger")
 parser.add_argument("golden_tagged", help="Input gold")
 args = parser.parse_args()
-
 
 with open('dictionaries/basic_words.txt') as r:
     basic_concepts = set([l for l in r.read().split()])
@@ -86,7 +86,10 @@ while not end:
         #     list(itertools.compress(buf2, mask)),
         #     list(itertools.compress(buf3, mask))
         # )
-        edit_d = levenshtein(buf2, nullify(buf3))
+        if args.autonullify:
+            edit_d = levenshtein(buf2, nullify(buf3))
+        else:
+            edit_d = levenshtein(buf2, buf3)
         stats['sum_edit_d'] += edit_d
 
         if edit_d == 0:

@@ -17,11 +17,6 @@ PATHS = {
     'concepts_dir': 'dictionaries/concepts/'
 }
 
-try:
-    os.makedirs('build/tmp')
-except OSError:
-    pass
-
 
 def init_symbols():
     r = OrderedSet()
@@ -88,18 +83,41 @@ def flush_symbols():
             out.write("{term}\t{index}\n".format(term=v, index=c))
             c += 1
 
-# we map to null what we think is unuseful
+
+def nullifier(nullifier_path):
+    c = fetch_symbols(PATHS['concepts'])
+    with open(nullifier_path, 'w') as out:
+        for word in symbols - set(['<eps>']):
+            outword = word if word in c else "null"
+            out.write("0\t0\t{input}\t{output}\n".format(input=word, output=outword))
+        out.write("0\n")
+
+
+# this is the main function that build the w2c parser
 def words2concepts(conceptsdir_path, basic_words, w2c_path):
+    # define weights
     w= {
         'unk2concepts': 4,
         'unk2null': 2,
-        'basic2null': 10,
+        'basic2null': 5,
         'concepts2null': 4,
     }
+
+    # adds/updates a line in the w2c.txt
+    def update(buf, inp, out, weight=0):
+        if inp not in buf:
+            buf[inp] = {out: weight}
+        elif out in buf[inp]:
+            m = min(buf[inp][out], weight)
+            buf[inp][out] = m
+        else:
+            buf[inp].update({out: weight})
+        
+
+    buf = dict()
     seen = set()
-    output = open(w2c_path, 'w')
 
-
+    # take every file that doesn't end with '.ignore' in the given path
     files = os.listdir(conceptsdir_path)
     for f in files:
         concept_name = path.splitext(path.basename(f))[0]
@@ -120,14 +138,14 @@ def words2concepts(conceptsdir_path, basic_words, w2c_path):
 
                 for spec_concept in concepts[concept_name]:
                     symbols.add(spec_concept)
-                    output.write("0\t0\t{input}\t{output}\n".format(input=l, output=spec_concept))
-                output.write("0\t0\t{input}\t{input}\n".format(input=l))
-                output.write("0\t0\t{input}\tnull\t{w}\n".format(input=l, w=w['concepts2null']))
+                    update(buf, l, spec_concept)
+                update(buf, l, l)
+                update(buf, l, "null", w['concepts2null'])
 
     for l in basic_words:
         seen.add(l)
-        output.write("0\t0\t{input}\t{input}\n".format(input=l))
-        output.write("0\t0\t{input}\tnull\t{w}\n".format(input=l,w=w['basic2null']))
+        update(buf, l, l)
+        update(buf, l, "null", w['basic2null'])
 
     for c in concepts.values():
         for sc in c:
@@ -136,73 +154,31 @@ def words2concepts(conceptsdir_path, basic_words, w2c_path):
             else:
                 weight = w['unk2concepts']
             for unk in symbols - seen - set(['<eps>']):
-                output.write("0\t0\t{input}\t{output}\t{w}\n".format(input=unk, output=sc, w=weight))
+                update(buf, unk, sc, weight)
 
-    output.write("0\n")
-    output.close()
+    with open(w2c_path, 'w') as output:
+        for inp in buf:
+            for out, weight in buf[inp].iteritems():
+                output.write("0\t0\t{input}\t{output}\t{weight}\n".format(input=inp, output=out, weight=weight))
+        output.write("0\n")
 
     flush_symbols()
 
+if __name__ == '__main__':
+    try:
+        os.makedirs('build/tmp')
+    except OSError:
+        pass
 
-def compile_fsm(sourcepath, destpath):
-    subprocess.check_call(["fsmcompile", "-t", "-i", PATHS['symbols'], "-o", PATHS['symbols'], "-F", destpath, sourcepath])
+    symbols = init_symbols()
+    concepts = init_concepts()
 
+    basic_words = fetch_symbols(PATHS['basic_words'])
+    fetch_symbols(PATHS['concepts'])
 
-def compose_fsm(inputs, output):
-    with open(output, 'w') as out:
-        subprocess.check_call(["fsmcompose"] + inputs, stdout=out)
+    words2concepts(PATHS['concepts_dir'], basic_words, 'build/w2c.txt')
 
+    nullifier('build/null.txt')
 
-def rmepsilon_fsm(fsm):
-    tmppath='build/tmp/p1.fsm'
-    with open(tmppath, 'w') as tmpwrite:
-        subprocess.check_call(["fsmrmepsilon", fsm], stdout=tmpwrite)
-    os.rename(tmppath, fsm)
-
-def minimize_fsm(fsm):
-    tmppath='build/tmp/p1.fsm'
-    with open(tmppath, 'w') as tmpwrite:
-        subprocess.check_call(["fsmminimize", fsm], stdout=tmpwrite)
-    os.rename(tmppath, fsm)
-
-def determinize_fsm(fsm):
-    tmppath='build/tmp/p1.fsm'
-    with open(tmppath, 'w') as tmpwrite:
-        subprocess.check_call(["fsmdeterminize", fsm], stdout=tmpwrite)
-    os.rename(tmppath, fsm)
-
-
-symbols = init_symbols()
-concepts = init_concepts()
-
-basic_words = fetch_symbols(PATHS['basic_words'])
-fetch_symbols(PATHS['concepts'])
-
-
-
-# subprocess.check_call(["grmread", "-i", PATHS['symbols'], '-c', '-w', PATHS['slu'], '-F', 'build/slu.fst'])
-
-# subprocess.check_call(["grmcfapproximate", '-i', PATHS['symbols'], '-s', 'S', '-o', 'build/tmp/symbols.lex', 'build/slu.fst', '-F', 'build/tmp/slu.txt'])
-
-# os.rename('build/tmp/slu.txt', 'build/slu.txt')
-# os.rename('build/tmp/symbols.lex', PATHS['symbols'])
-# # shutil.copy2(PATHS['slu'], 'build/slu.txt')
-# symbols = init_symbols()
-
-# subprocess.check_call(["grmread", "-i", PATHS['symbols'], '-c', '-w', 'build/slu.txt', '-F', 'build/slu.fst'])
-
-# subprocess.check_call(['grmcfcompile', '-i', PATHS['symbols'], '-s', 'S', '-O', '2', 'build/slu.fst', '-F', 'build/slu.fsa'])
-
-
-#rmepsilon_fsm('build/slu.fsa')
-
-words2concepts(PATHS['concepts_dir'], basic_words, 'build/w2c.txt')
-fetch_symbols(PATHS['slu'], grammar=True)
-
-# compile_fsm('build/w2c.txt', 'build/w2c.fst')
-# rmepsilon_fsm('build/w2c.fst')
-# # compile_fsm('automatons/c2sc.txt', 'build/c2sc.fst')
-
-
-# compose_fsm(['build/w2c.fst', 'build/slu.fsa'], 'build/tagger.fst')
-# rmepsilon_fsm('build/tagger.fst')
+    fetch_symbols(PATHS['slu'], grammar=True)
+    flush_symbols()

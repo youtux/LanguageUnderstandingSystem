@@ -3,7 +3,7 @@ from os import path
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("input_file", help="Input training set")
+parser.add_argument("input_file", help="Input tagged training set")
 parser.add_argument("output_directory", help="Dictionaries output")
 args = parser.parse_args()
 

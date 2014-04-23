@@ -6,16 +6,17 @@ SLU_PATH = automatons/slu.txt
 W2C_PATH = build/w2c.txt
 SYMBOLS_PATH = build/symbols.lex
 
-
-INPUT_WL = atis/custom
+# Input file path. Feel free to change it
+INPUT_WL = atis/custom.wl
 INPUT_REFERENCE = atis/custom.tagged
 
 
-.PHONY: default all clean parser build_wl build_far test
+.PHONY: default from_wl from_tagged clean parser build_wl build_far test
 
-default: all
+default: from_tagged
 
-all: build_far parser test
+from_tagged: build_wl from_wl compare_results
+from_wl: build_far parser test
 
 # creates the sentences file starting from a tagged sentences file
 build_wl:
@@ -27,8 +28,10 @@ build_far: parser
 	cp $(INPUT_REFERENCE) $(BUILD_DIR)/golden.txt
 
 test:
-	farfilter "fsmcompose - $(BUILD_DIR)/tagger.fst | fsmbestpath | fsmrmepsilon | fsmcompose - $(BUILD_DIR)/null.fst" < "$(BUILD_DIR)/input.far" > "$(BUILD_DIR)/output.far"
+	farfilter "fsmcompose - $(BUILD_DIR)/tagger.fst | fsmbestpath | fsmrmepsilon" < "$(BUILD_DIR)/input.far" > "$(BUILD_DIR)/output.far"
 	farfilter "fsmprint -i $(SYMBOLS_PATH) -o $(SYMBOLS_PATH) - | cut -f 3,4" < "$(BUILD_DIR)/output.far" > "$(BUILD_DIR)/tagged.txt"
+
+compare_results:
 	$(SCRIPTS_DIR)/compare_outputs.py $(BUILD_DIR)/tagged.txt $(BUILD_DIR)/golden.txt > $(BUILD_DIR)/comparison.txt
 
 
@@ -52,7 +55,8 @@ parser: clean
 	fsmcompile -t -i $(SYMBOLS_PATH) -o $(SYMBOLS_PATH) $(BUILD_DIR)/null.txt > $(BUILD_DIR)/null.fst
 
 	# Compose w2c + slu -> tagger
-	fsmcompose $(BUILD_DIR)/w2c.fst $(BUILD_DIR)/slu.fsa > $(BUILD_DIR)/tagger.fst
+	# fsmcompose $(BUILD_DIR)/w2c.fst $(BUILD_DIR)/slu.fsa > $(BUILD_DIR)/tagger.fst
+	fsmcompose $(BUILD_DIR)/w2c.fst $(BUILD_DIR)/slu.fsa $(BUILD_DIR)/null.fst > $(BUILD_DIR)/tagger.fst
 
 	# Just a bit of optimization
 	fsmrmepsilon $(BUILD_DIR)/tagger.fst > $(TMP)/tagger.fst

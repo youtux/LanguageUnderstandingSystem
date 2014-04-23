@@ -11,8 +11,11 @@ parser.add_argument("input_tagged", help="Input generated from tagger")
 parser.add_argument("golden_tagged", help="Input gold")
 args = parser.parse_args()
 
-with open('dictionaries/basic_words.txt') as r:
-    basic_concepts = set([l for l in r.read().split()])
+basic_concepts = set()
+
+if args.autonullify:
+    with open('dictionaries/basic_words.txt') as r:
+        basic_concepts = set([l for l in r.read().split()])
 
 
 def nullify(l):
@@ -125,4 +128,5 @@ while not end:
 print stats
 print "CER_total={}\n".format(stats['sum_edit_d']/float(stats['sum_n_concepts']))
 
-sys.exit(c)
+if c > 2:
+    print "Warning: {c} characters were not compared\n".format(c=c)

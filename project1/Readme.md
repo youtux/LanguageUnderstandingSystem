@@ -1,8 +1,10 @@
 # First Mid-Term Project
+
 ## Overview
 This is the first mid-term project for the course of Language Understanding Systems.
 
 Author: [Alessio Bogon](https://twitter.com/youtux).
+
 ## Long story short: usage
 In order to run the program, you need to have either:
 
@@ -21,7 +23,7 @@ In either ways you will find in **build/tagged.txt** the tagged file generated b
 [^1]: The tagged/reference file must agree to a two-columns style, the first containing the words, the second containing the concepts. Each sentence must be terminated with a blank new-line. See **atis/atis.hlti.100.dev** for reference.
 
 ## Description
-The main steps I followed in order to build the project are the following:
+The main steps that have been followed in order to build the project are the following:
 
 * Understand the training set to get an overview of the concepts we want to recognize
 * Write a first draw of the grammar
@@ -39,12 +41,11 @@ In a nutshell, the **Makefile** will:
 * build the *fsm*s and pack them in **tagger.fst**
 * take the input list of utterances, convert everyone in the corresponding *fsa* and pack them into one big file using `farcompilestrings`.
 * Compose every single utterance with the **tagger.fst** and put the result into another *fararchive* (*output.far*).
-* Compare the reference file (if present) with the generated one, and show the results.
+* Compare the reference file (if available) with the generated one, and show the results.
 
-Let's see how the w2c transducer works.
+### Words to concepts conversion
+The file **build/w2c.txt** is the source code of the transudcer that maps words to concepts (e.g. *dallas* to *city_name*, *fromloc.city_name*, *toloc.city_name*, ...). In order to create it, we use a python script, **scripts/build_parser.py** that uses a knowledge base of concepts: in the **dictionaries/concepts/** directory there are plenty of files, for instance **city_name.txt**. When the **build_parser.py** is invoked, it reads every file from this directory[^2], and if the filename matches one of the concepts, all the lines in the file will be mapped to that concept.
 
-### word2concepts transducer
-The file **build/w2c.txt** is the source code of the transudcer that maps words to concepts (ie. *dallas* to *city_name*, *fromloc.city_name*, *toloc.city_name*, ...). In order to create it, we use a python script, **scripts/build_parser.py** that use a knowledge base of concepts: in the **dictionaries/concepts/** directory there are plenty of files, for instance **city_name.txt**. When the **build_parser.py** is invoked, it reads every file from this directory[^2], and if the filename matches one of the concepts, all the lines in the file will be mapped to the correct concepts.
 For instance, if the content of the file **dictionaries/concepts/city_name.txt** is
 
 	dallas
@@ -62,7 +63,53 @@ then these lines will be mapped to the right concepts[^3] in the **w2c.txt** sou
 	...
 **w2c.txt** is generated using also another dictionary, **dictionaries/basic_words.txt**. This one only has words that are meaningful to the grammar in order to take a decision, but they will be mapped to null once the *best path* has been chosen.
 
+Another important thing is the handling of *unknown* words. We don't know anything about that these words and they can be anything: an airport, a city, a date, a mistake, gibberish, etc. Due to this unpredictability we map the *unknown* to all the possible concepts, including of course *null*. When doing this we use different weights and we can see them in the **build_parser.py** script:
+
+	def words2concepts(...):
+	    # define weights
+	    w= {
+	        'unk2concepts': 4,
+	        'unk2null': 2,
+	        'basic2null': 5,
+	        'concepts2null': 4,
+	    }
+	    ...
+As we can see, *unknown* words are mapped to concepts with weight 4, and to *null* with weight 2. This has been done since once we have a big-enough knowledge base it is more likely that something is unuseful (i.e. *null*) rather than a useful concept.
+
+There are other weights declared, but these are just selected to fine-grain the accuracy of the system.
+
 [^2]: Actually, **build_parser.py** only looks for filenames that doesn't end with `.ignore`
 [^3]: Every word is also mapped to itself and to null. To itself because we may want to handle special names in our grammar. For instance, `the` can be the article or can be the IATA code for the [Teresina Airport](http://en.wikipedia.org/wiki/Teresina_Airport). To null because we may want to ignore the word. Note that these actions have different weights.
 
-## The Grammar
+### The Grammar
+The grammar that will actually take the decision of which tag to assign to a word is located in **automatons/slu.txt**. The idea to keep in mind when reading the grammar is that we want to accept every utterance and that we want to be flexible when tagging as much as possible.
+For example, the lines
+
+	S					0 <eps>
+	S					0 GARBAGE S
+	...
+	GARBAGE				0 GARBAGE_S GARBAGE | 0 <eps>
+	GARBAGE_S			1 null | 0 what | 0 which | 0 like to | ...
+are needed so that we can accept everything, since all the words are mapped to null. Note that when reading a *null* word we use a weight of 1, since we want to treat a word as null if no other paths are possible.
+
+The line
+
+	S					0 leaving FROMLOC for TOLOC S | 0 between FROMLOC and TOLOC S  | 0 from FROMLOC to STOPLOC to TOLOC S
+	S					0 FROM_SEP FROMLOC TO_SEP TOLOC S
+is straight forward: it will tag utterances like `show me the flights leaving boston for denver` or `flights between san-francisco and new-york` or `from miami to los-angeles`, and it is probably the most used during the tagging process.
+Then we have a more general production
+
+	S					0 START_STMT GARBAGE START_FRAME S
+	S					0 ARRIVE_STMT GARBAGE ARRIVE_FRAME S
+	S					0 STOP_STMT GARBAGE STOP_FRAME S
+	S					1 RETURN_STMT GARBAGE RETURN_FRAME S
+that will parse *frames* of the utterance that are respectively informations about *leaving*, *arriving*, *stop* and *return*. Note that we get to the `RETURN_FRAME` with cost 1, since it is less likely to have *return* informations rather than *arrive* informations.
+We can now jump to the `START_FRAME` productions:
+
+	START_FRAME			0 FROM_SEP FROMLOC START_FRAME_CONT
+	START_FRAME			0 LEAVING_TIME START_FRAME_CONT
+	START_FRAME			0 LEAVING_DATE START_FRAME_CONT
+	START_FRAME_CONT	0 START_FRAME START_FRAME_CONT | 0 <eps>
+Once we get to the `START_FRAME`, we may read a `FROM_SEP` and then we'll wait for a location, or we can read something related to the time/date and go into the `LEAVING_TIME`/`_DATE`. In both ways, thanks to the `START_FRAME_CONT` rule we can either keep staying in the frame or exit from it using the `<eps>` shortcut. This allow us to read further informations that should be treated as *leaving* informations. The same goes for `ARRIVE_FRAME` and `RETURN_FRAME`.
+
+All the other production rules are probably not worth the time to be explained, since they are pretty simple.

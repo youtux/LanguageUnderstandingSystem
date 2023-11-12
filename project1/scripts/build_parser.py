@@ -20,11 +20,7 @@ PATHS = {
 
 def init_symbols():
     r = OrderedSet()
-    if path.exists(PATHS['symbols']):
-        read = PATHS['symbols']
-    else:
-        read = PATHS['base']
-
+    read = PATHS['symbols'] if path.exists(PATHS['symbols']) else PATHS['base']
     with open(read, 'r') as f:
         for line in f:
             r.add(line.split()[0])
@@ -78,16 +74,14 @@ def fetch_symbols(filepath, grammar=False):
 
 def flush_symbols():
     with open(PATHS['symbols'], "w") as out:
-        c = 0
-        for v in symbols:
+        for c, v in enumerate(symbols):
             out.write("{term}\t{index}\n".format(term=v, index=c))
-            c += 1
 
 
 def nullifier(nullifier_path):
     c = fetch_symbols(PATHS['concepts'])
     with open(nullifier_path, 'w') as out:
-        for word in symbols - set(['<eps>']):
+        for word in symbols - {'<eps>'}:
             outword = word if word in c else "null"
             out.write("0\t0\t{input}\t{output}\n".format(input=word, output=outword))
         out.write("0\n")
@@ -112,7 +106,7 @@ def words2concepts(conceptsdir_path, basic_words, w2c_path):
             buf[inp][out] = m
         else:
             buf[inp].update({out: weight})
-        
+
 
     buf = dict()
     seen = set()
@@ -149,11 +143,8 @@ def words2concepts(conceptsdir_path, basic_words, w2c_path):
 
     for c in concepts.values():
         for sc in c:
-            if sc == 'null':
-                weight = w['unk2null']
-            else:
-                weight = w['unk2concepts']
-            for unk in symbols - seen - set(['<eps>']):
+            weight = w['unk2null'] if sc == 'null' else w['unk2concepts']
+            for unk in symbols - seen - {'<eps>'}:
                 update(buf, unk, sc, weight)
 
     with open(w2c_path, 'w') as output:

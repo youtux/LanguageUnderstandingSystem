@@ -15,7 +15,7 @@ basic_concepts = set()
 
 if args.autonullify:
     with open('dictionaries/basic_words.txt') as r:
-        basic_concepts = set([l for l in r.read().split()])
+        basic_concepts = set(list(r.read().split()))
 
 
 def nullify(l):
